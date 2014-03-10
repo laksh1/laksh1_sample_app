@@ -9,6 +9,12 @@ describe "Authentication" do
 
     it { should have_content('Sign in') }
     it { should have_title('Sign in') }
+    
+    it { should_not have_link('Users') }
+    it { should_not have_link('Profile') }
+    it { should_not have_link('Settings') }
+    it { should_not have_link('Sign out', href: signout_path) }
+    it { should have_link('Sign in', href: signin_path) }
   end
   describe "signin" do
     before { visit signin_path }
@@ -51,6 +57,27 @@ describe "Authentication" do
         it { should have_link('Sign in') }
       end
     end
+      describe "for signed-in users" do
+      let(:user) { FactoryGirl.create(:user) }
+      before { sign_in user, no_capybara: true }
+
+      describe "using a 'new' action" do
+        before { get new_user_path }      
+        specify { response.should redirect_to(root_path) }
+      end
+
+      describe "using a 'create' action" do
+        before do
+          @user_new = {name: "Example User", 
+                       email: "user@example.com", 
+                       password: "foobar", 
+                       password_confirmation: "foobar"} 
+          post users_path, user: @user_new 
+        end
+        specify { response.should redirect_to(root_path) }
+      end
+    end 
+  
   end
  describe "authorization" do
     

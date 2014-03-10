@@ -2,8 +2,8 @@ class UsersController < ApplicationController
 before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
  before_action :correct_user,   only: [:edit, :update]
 before_action :admin_user,     only: :destroy
-  def new
-  end
+ # def new
+ # end
 def index
     @users = User.paginate(page: params[:page])
   end
@@ -12,8 +12,14 @@ def show
     @microposts = @user.microposts.paginate(page: params[:page])
   end
 def new
-    @user = User.new
-end
+    unless signed_in?
+      @user = User.new
+      @title = "Sign up"
+    else
+      flash[:info] = "You're already logged in, so you cannot create a new account."
+      redirect_to root_path
+    end
+  end
 def edit
 end
 
@@ -32,15 +38,20 @@ def destroy
     end
   end
 def create
-    @user = User.new(user_params)
-    if @user.save
-      sign_in @user
-      flash[:success] = "Welcome to the Sample App!"
-      redirect_to @user
+    unless signed_in?
+      @user = User.new(user_params)
+      if @user.save
+        sign_in @user
+        flash[:success] = "Welcome to the Sample App!"
+        redirect_to @user
+      else
+        render 'new'
+      end
     else
-      render 'new'
+      flash[:info] = "You're already logged in, so you cannot create a new account."
+      redirect_to root_path
     end
-end
+  end
 
   private
 
